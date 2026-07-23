@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HireLoop — PRD &amp; Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#20204A;
+    --navy-2:#2B2B63;
+    --teal:#0F8F6C;
+    --teal-light:#E4F5EF;
+    --amber:#C97A2B;
+    --cream:#FBFAF6;
+    --paper:#FFFFFF;
+    --ink:#22221F;
+    --ink-soft:#5B5B54;
+    --line:#E4E2D8;
+    --line-strong:#CFCCBD;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    font-size:16px;
+    line-height:1.65;
+  }
+  h1,h2,h3{
+    font-family:'Fraunces',serif;
+    font-weight:500;
+    color:var(--navy);
+    letter-spacing:-0.01em;
+  }
+  a{color:var(--teal);}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--teal);
+  }
+
+  /* ---------- Layout ---------- */
+  .shell{
+    display:grid;
+    grid-template-columns:270px 1fr;
+    max-width:1180px;
+    margin:0 auto;
+  }
+  nav.toc{
+    position:sticky;
+    top:0;
+    align-self:start;
+    height:100vh;
+    overflow-y:auto;
+    padding:40px 20px 40px 32px;
+    border-right:1px solid var(--line);
+  }
+  nav.toc .brand{
+    font-family:'Fraunces',serif;
+    font-size:22px;
+    font-weight:600;
+    color:var(--navy);
+    margin-bottom:4px;
+  }
+  nav.toc .brand-sub{
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-bottom:28px;
+  }
+  nav.toc ol{
+    list-style:none;
+    margin:0;
+    padding:0;
+    counter-reset:toc;
+  }
+  nav.toc li{
+    counter-increment:toc;
+    margin-bottom:2px;
+  }
+  nav.toc a{
+    display:block;
+    text-decoration:none;
+    color:var(--ink-soft);
+    font-size:13.5px;
+    padding:7px 10px;
+    border-radius:6px;
+    transition:background .15s, color .15s;
+  }
+  nav.toc a::before{
+    content: counter(toc) "  ";
+    font-family:'JetBrains Mono',monospace;
+    color:var(--line-strong);
+    font-size:12px;
+  }
+  nav.toc a:hover{background:var(--teal-light); color:var(--teal);}
+  nav.toc a.active{background:var(--teal-light); color:var(--teal); font-weight:500;}
+
+  main{padding:0 56px 100px 56px;}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding:72px 0 40px 0;
+    border-bottom:1px solid var(--line);
+    margin-bottom:48px;
+  }
+  .hero h1{
+    font-size:44px;
+    margin:14px 0 8px 0;
+  }
+  .hero .tagline{
+    font-size:19px;
+    color:var(--teal);
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    margin-bottom:18px;
+  }
+  .hero .meta{
+    display:flex;
+    gap:28px;
+    flex-wrap:wrap;
+    margin-top:24px;
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+  .hero .meta strong{
+    display:block;
+    color:var(--ink);
+    font-size:13.5px;
+    font-weight:600;
+  }
+
+  /* ---------- Sections ---------- */
+  section{
+    margin-bottom:56px;
+    scroll-margin-top:24px;
+  }
+  section h2{
+    font-size:26px;
+    margin:0 0 6px 0;
+    padding-bottom:14px;
+    border-bottom:2px solid var(--navy);
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+  }
+  section h2 .num{
+    font-family:'JetBrains Mono',monospace;
+    font-size:15px;
+    color:var(--teal);
+    font-weight:500;
+  }
+  h3{
+    font-size:18px;
+    margin:28px 0 10px 0;
+    color:var(--navy-2);
+  }
+  p{color:var(--ink); max-width:760px;}
+  .lede{font-size:16.5px; color:var(--ink-soft); max-width:760px;}
+
+  ul.check, ol.steps{
+    max-width:760px;
+    padding-left:0;
+    list-style:none;
+    margin:14px 0;
+  }
+  ul.check li, ol.steps li{
+    position:relative;
+    padding:8px 0 8px 28px;
+    border-bottom:1px dashed var(--line);
+    font-size:15px;
+  }
+  ul.check li:last-child, ol.steps li:last-child{border-bottom:none;}
+  ul.check li::before{
+    content:"";
+    position:absolute; left:0; top:14px;
+    width:9px; height:9px;
+    border-radius:2px;
+    background:var(--teal);
+  }
+  ol.steps{counter-reset:step;}
+  ol.steps li{counter-increment:step;}
+  ol.steps li::before{
+    content:counter(step);
+    position:absolute; left:0; top:7px;
+    width:18px; height:18px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    background:var(--navy);
+    color:#fff;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  /* ---------- Tables ---------- */
+  .table-wrap{overflow-x:auto; margin:18px 0;}
+  table{
+    border-collapse:collapse;
+    width:100%;
+    min-width:560px;
+    font-size:14px;
+    background:var(--paper);
+  }
+  thead th{
+    text-align:left;
+    background:var(--navy);
+    color:#fff;
+    font-weight:600;
+    font-size:12.5px;
+    letter-spacing:0.02em;
+    padding:11px 14px;
+  }
+  tbody td{
+    padding:11px 14px;
+    border-bottom:1px solid var(--line);
+    vertical-align:top;
+    color:var(--ink);
+  }
+  tbody tr:nth-child(even){background:#FAF9F4;}
+  tbody td:first-child{font-weight:600; color:var(--navy-2); white-space:nowrap;}
+
+  /* ---------- Pipeline visual ---------- */
+  .pipeline{
+    display:flex;
+    flex-direction:column;
+    gap:0;
+    max-width:760px;
+    margin:24px 0;
+  }
+  .pipe-stage{
+    display:grid;
+    grid-template-columns:44px 1fr;
+    gap:16px;
+    position:relative;
+    padding-bottom:26px;
+  }
+  .pipe-stage:last-child{padding-bottom:0;}
+  .pipe-stage .dot{
+    width:44px; height:44px;
+    border-radius:50%;
+    background:var(--teal-light);
+    border:2px solid var(--teal);
+    color:var(--teal);
+    font-family:'JetBrains Mono',monospace;
+    font-weight:600;
+    display:flex; align-items:center; justify-content:center;
+    z-index:1;
+  }
+  .pipe-stage.checkpoint .dot{
+    background:#FBEFDF; border-color:var(--amber); color:var(--amber);
+  }
+  .pipe-stage:not(:last-child)::before{
+    content:"";
+    position:absolute;
+    left:21px; top:44px; bottom:0;
+    width:2px;
+    background:var(--line-strong);
+  }
+  .pipe-stage .content{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px 18px;
+  }
+  .pipe-stage .content strong{display:block; font-size:15px; color:var(--navy); margin-bottom:3px;}
+  .pipe-stage .content span{font-size:13.5px; color:var(--ink-soft);}
+  .badge{
+    display:inline-block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    background:#FBEFDF;
+    color:var(--amber);
+    border-radius:4px;
+    padding:2px 7px;
+    margin-left:8px;
+  }
+
+  /* ---------- Callout ---------- */
+  .callout{
+    max-width:760px;
+    border-left:3px solid var(--teal);
+    background:var(--teal-light);
+    padding:14px 20px;
+    border-radius:0 8px 8px 0;
+    font-size:14.5px;
+    color:var(--navy-2);
+    margin:20px 0;
+  }
+  .callout.warn{border-left-color:var(--amber); background:#FBEFDF;}
+
+  footer{
+    max-width:760px;
+    padding-top:24px;
+    border-top:1px solid var(--line);
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+
+  @media(max-width:900px){
+    .shell{grid-template-columns:1fr;}
+    nav.toc{position:relative; height:auto; border-right:none; border-bottom:1px solid var(--line);}
+    main{padding:0 24px 80px 24px;}
+  }
+  @media print{
+    nav.toc{display:none;}
+    .shell{grid-template-columns:1fr;}
+    body{background:#fff;}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <nav class="toc" id="toc">
+    <div class="brand">HireLoop</div>
+    <div class="brand-sub">PRD &amp; Architecture · v1.0</div>
+    <ol>
+      <li><a href="#overview">Document overview</a></li>
+      <li><a href="#problem">Problem &amp; goals</a></li>
+      <li><a href="#users">Target users</a></li>
+      <li><a href="#functional">Functional requirements</a></li>
+      <li><a href="#nonfunctional">Non-functional requirements</a></li>
+      <li><a href="#metrics">Success metrics</a></li>
+      <li><a href="#architecture">System architecture</a></li>
+      <li><a href="#roadmap">Delivery roadmap</a></li>
+      <li><a href="#risks">Risks &amp; mitigations</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <div class="hero">
+      <div class="eyebrow">Product requirements &amp; system architecture</div>
+      <h1>HireLoop</h1>
+      <div class="tagline">An AI-assisted recruitment pipeline, from brief to hire.</div>
+      <p class="lede">This document defines what HireLoop does and how it's built — covering the full pipeline from product brief through JD generation, resume screening, interview question generation, note capture, and candidate scoring.</p>
+      <div class="meta">
+        <div><strong>Owner</strong>Product / Talent Acquisition Tech</div>
+        <div><strong>Status</strong>Draft for review</div>
+        <div><strong>Primary users</strong>Recruiters, hiring managers, interview panel</div>
+      </div>
+    </div>
+
+    <section id="overview">
+      <h2><span class="num">01</span>Document overview</h2>
+      <p>HireLoop replaces a chain of disconnected manual steps — spreadsheets, email threads, ad hoc interview notes — with one pipeline where each stage feeds structured data into the next, and every AI-assisted decision has a human checkpoint before it affects a candidate.</p>
+    </section>
+
+    <section id="problem">
+      <h2><span class="num">02</span>Problem &amp; goals</h2>
+      <p class="lede">Recruiters currently handle JD writing, resume screening, question prep, and scoring as disconnected manual steps. This causes inconsistent JDs, slow triage on high-volume roles, interviews that vary by interviewer, and subjective, hard-to-defend hiring decisions.</p>
+
+      <h3>Goals</h3>
+      <ul class="check">
+        <li>Cut time-to-shortlist by automating resume screening against the JD</li>
+        <li>Standardize interview quality with JD- and resume-aware question generation</li>
+        <li>Make hiring decisions defensible with structured, rubric-based scoring</li>
+        <li>Keep a full audit trail of JD versions, screening scores, and interview scores</li>
+      </ul>
+
+      <h3>Out of scope for v1</h3>
+      <ul class="check">
+        <li>Fully autonomous rejection of candidates without recruiter approval</li>
+        <li>Offer-letter generation and background verification</li>
+        <li>Native video interviewing — integrate with existing tools instead</li>
+      </ul>
+    </section>
+
+    <section id="users">
+      <h2><span class="num">03</span>Target users &amp; roles</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Role</th><th>What they do in HireLoop</th></tr></thead>
+          <tbody>
+            <tr><td>Recruiter</td><td>Creates brief, edits JD, reviews shortlist, coordinates interviews, views scorecards</td></tr>
+            <tr><td>Hiring manager</td><td>Approves JD, reviews shortlist and scorecards, makes the final call</td></tr>
+            <tr><td>Interview panel</td><td>Receives generated questions, logs interview notes</td></tr>
+            <tr><td>Admin</td><td>Manages users, roles, rubric templates, integrations</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="functional">
+      <h2><span class="num">04</span>Functional requirements — the pipeline</h2>
+      <p class="lede">Each stage below maps directly to a system module in the architecture section. Stages marked <span class="badge">checkpoint</span> require explicit human approval before the pipeline continues.</p>
+
+      <div class="pipeline">
+        <div class="pipe-stage">
+          <div class="dot">1</div>
+          <div class="content">
+            <strong>Product / brand brief</strong>
+            <span>Structured form — company, product, team, seniority, must-haves, budget, location. Saveable as a reusable template.</span>
+          </div>
+        </div>
+        <div class="pipe-stage">
+          <div class="dot">2</div>
+          <div class="content">
+            <strong>JD generation (AI)</strong>
+            <span>Draft summary, responsibilities, and skills from the brief. Recruiter edits inline; full version history retained.</span>
+          </div>
+        </div>
+        <div class="pipe-stage">
+          <div class="dot">3</div>
+          <div class="content">
+            <strong>Resume intake</strong>
+            <span>Bulk ZIP/folder upload — PDF, DOCX, scanned images with OCR fallback. Auto-parsed into a structured candidate profile.</span>
+          </div>
+        </div>
+        <div class="pipe-stage checkpoint">
+          <div class="dot">4</div>
+          <div class="content">
+            <strong>Screening &amp; ranking <span class="badge">checkpoint</span></strong>
+            <span>Semantic match between resume and JD, with a visible score breakdown. Recruiter must approve the shortlist before anyone is marked not-a-fit.</span>
+          </div>
+        </div>
+        <div class="pipe-stage">
+          <div class="dot">5</div>
+          <div class="content">
+            <strong>Interview question generation</strong>
+            <span>Per-candidate mix of technical, resume-specific, and behavioral questions, each tagged with what it tests.</span>
+          </div>
+        </div>
+        <div class="pipe-stage">
+          <div class="dot">6</div>
+          <div class="content">
+            <strong>Interview &amp; notes capture</strong>
+            <span>Structured notes, one block per question, per candidate. Optional transcription and auto-summarization.</span>
+          </div>
+        </div>
+        <div class="pipe-stage checkpoint">
+          <div class="dot">7</div>
+          <div class="content">
+            <strong>AI scoring <span class="badge">checkpoint</span></strong>
+            <span>Notes scored against a weighted rubric. Per-criterion scorecard, never a single opaque number — recruiter can override with a note.</span>
+          </div>
+        </div>
+        <div class="pipe-stage">
+          <div class="dot">8</div>
+          <div class="content">
+            <strong>Decision dashboard</strong>
+            <span>Side-by-side candidate comparison — resume score, interview score, composite score. Exportable for the hiring committee.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="nonfunctional">
+      <h2><span class="num">05</span>Non-functional requirements</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Category</th><th>Requirement</th></tr></thead>
+          <tbody>
+            <tr><td>Performance</td><td>Batch of 200 resumes parsed and screened within 5 minutes</td></tr>
+            <tr><td>Availability</td><td>99.5% uptime for core screening and dashboard services</td></tr>
+            <tr><td>Data privacy</td><td>Candidate PII encrypted at rest and in transit; role-based access control</td></tr>
+            <tr><td>Bias mitigation</td><td>Option to mask name/gender-coded fields before AI screening; periodic score-distribution audits</td></tr>
+            <tr><td>Auditability</td><td>Every JD version, AI score, and rubric change logged with timestamp and actor</td></tr>
+            <tr><td>Compliance</td><td>No fully automated rejection — human approval required at every reject decision</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="metrics">
+      <h2><span class="num">06</span>Success metrics</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Metric</th><th>Target</th></tr></thead>
+          <tbody>
+            <tr><td>Time from JD publish to shortlist</td><td>Reduce by 60% vs. manual process</td></tr>
+            <tr><td>Recruiter override rate on AI shortlist</td><td>Keep under 20% — signals ranking quality</td></tr>
+            <tr><td>Interview-to-offer consistency</td><td>Reduce score variance across interviewers for the same candidate</td></tr>
+            <tr><td>Time-to-fill</td><td>Reduce by 30% within two quarters of rollout</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="architecture">
+      <h2><span class="num">07</span>System architecture</h2>
+      <p class="lede">A modular web application: a recruiter-facing frontend, a backend API layer, a relational database for structured records, blob storage for resumes, and an AI layer invoked at four points in the pipeline.</p>
+
+      <h3>Technology stack</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Layer</th><th>Recommendation</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Frontend</td><td>React / Next.js</td><td>Recruiter dashboard, candidate views, scorecards</td></tr>
+            <tr><td>Backend API</td><td>Node.js (NestJS) or Python (FastAPI)</td><td>REST or GraphQL API layer</td></tr>
+            <tr><td>Primary database</td><td>PostgreSQL</td><td>Candidates, JDs, scores, rubric templates, audit log</td></tr>
+            <tr><td>File storage</td><td>S3-compatible object storage</td><td>Resumes, transcripts, exported scorecards</td></tr>
+            <tr><td>Vector search</td><td>pgvector, Pinecone, or Weaviate</td><td>Semantic resume-to-JD matching</td></tr>
+            <tr><td>AI / LLM layer</td><td>Claude API</td><td>JD generation, question generation, interview scoring</td></tr>
+            <tr><td>Resume parsing</td><td>Textract / Affinda + OCR fallback</td><td>Structured extraction from PDF/DOCX/scanned files</td></tr>
+            <tr><td>Auth</td><td>OAuth2 / SSO (Okta, Azure AD)</td><td>Role-based access control</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Core data model</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Entity</th><th>Key fields</th></tr></thead>
+          <tbody>
+            <tr><td>Role / Brief</td><td>id, title, brief JSON, created_by, status</td></tr>
+            <tr><td>JobDescription</td><td>id, role_id, version, content, published_at</td></tr>
+            <tr><td>Candidate</td><td>id, role_id, name, contact, parsed_profile JSON, resume_file_ref</td></tr>
+            <tr><td>ScreeningScore</td><td>id, candidate_id, skills_match, experience_match, keyword_hits, overall_score</td></tr>
+            <tr><td>InterviewQuestion</td><td>id, candidate_id, question_text, tests_for, source</td></tr>
+            <tr><td>InterviewNote</td><td>id, candidate_id, question_id, note_text, interviewer_id, created_at</td></tr>
+            <tr><td>Scorecard</td><td>id, candidate_id, criterion, weight, score, ai_generated, override_note</td></tr>
+            <tr><td>AuditLog</td><td>id, entity_type, entity_id, action, actor_id, timestamp</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>AI integration points</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Pipeline stage</th><th>AI task</th><th>Input</th><th>Output</th></tr></thead>
+          <tbody>
+            <tr><td>JD generation</td><td>Draft generation</td><td>Structured brief</td><td>Formatted JD draft</td></tr>
+            <tr><td>Resume screening</td><td>Semantic matching</td><td>JD + resume embeddings</td><td>Match score + breakdown</td></tr>
+            <tr><td>Question generation</td><td>Personalized drafting</td><td>JD + candidate resume</td><td>Tagged question set</td></tr>
+            <tr><td>Interview scoring</td><td>Rubric-based evaluation</td><td>Interview notes + rubric</td><td>Per-criterion scorecard</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Human-in-the-loop checkpoints</h3>
+      <ol class="steps">
+        <li>JD is drafted by AI, but must be reviewed and published by a recruiter</li>
+        <li>Shortlist ranking is AI-generated, but rejection requires recruiter confirmation</li>
+        <li>Generated questions can be edited or removed by the panel before use</li>
+        <li>AI scores are shown with per-criterion reasoning and can be overridden with a note</li>
+      </ol>
+
+      <div class="callout warn">
+        <strong>Compliance note —</strong> the pipeline never auto-rejects a candidate. Every reject decision needs a recruiter's explicit action, and it's logged in the audit trail.
+      </div>
+
+      <h3>Security &amp; compliance</h3>
+      <ul class="check">
+        <li>Encrypt candidate PII at rest and in transit; restrict resume access by role</li>
+        <li>Retain full version history for JDs, scores, and rubric changes</li>
+        <li>Mask name/gender-coded fields before AI screening, to reduce bias risk</li>
+        <li>Log AI-generated decisions separately from human overrides, for bias audits</li>
+      </ul>
+    </section>
+
+    <section id="roadmap">
+      <h2><span class="num">08</span>Delivery roadmap</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Phase</th><th>Scope</th></tr></thead>
+          <tbody>
+            <tr><td>Phase 1 — MVP</td><td>Brief form, JD generation, manual resume upload, keyword-based screening</td></tr>
+            <tr><td>Phase 2</td><td>Semantic resume-JD matching, AI question generation, structured interview notes</td></tr>
+            <tr><td>Phase 3</td><td>AI scoring with rubric, decision dashboard, audit log, bias-mitigation controls</td></tr>
+            <tr><td>Phase 4</td><td>Integrations (ATS, calendar, HRIS), analytics, multi-role rubric templates</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="risks">
+      <h2><span class="num">09</span>Risks &amp; mitigations</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
+          <tbody>
+            <tr><td>Over-reliance on AI ranking</td><td>Keep human approval gate at every reject decision</td></tr>
+            <tr><td>Biased scoring from training data</td><td>Mask identity fields; periodic score-distribution audits by demographic</td></tr>
+            <tr><td>Resume parsing failures on unusual formats</td><td>Manual review queue for unparseable files</td></tr>
+            <tr><td>Recruiter distrust of opaque scores</td><td>Always show score breakdown, never a single black-box number</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>HireLoop — Product Requirements &amp; System Architecture Document · v1.0 · Draft</footer>
+  </main>
+</div>
+
+<script>
+  // Highlight active TOC link on scroll
+  const links = document.querySelectorAll('nav.toc a');
+  const sections = Array.from(links).map(l => document.querySelector(l.getAttribute('href')));
+  function onScroll(){
+    let idx = 0;
+    sections.forEach((sec, i) => {
+      if(sec && sec.getBoundingClientRect().top - 80 <= 0) idx = i;
+    });
+    links.forEach((l,i) => l.classList.toggle('active', i === idx));
+  }
+  document.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>
